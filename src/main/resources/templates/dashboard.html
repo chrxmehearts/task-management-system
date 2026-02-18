@@ -69,7 +69,7 @@
                 <button class="filter-tab" :class="{ active: filter === 'DONE' }" @click="filter = 'DONE'">Done</button>
             </div>
 
-            <div id="task-list"
+            <div id="task-list" class="tasks-grid"
                  hx-get="/ui/tasks/list"
                  hx-trigger="load"
                  hx-swap="innerHTML">
@@ -83,7 +83,7 @@
                 <form hx-post="/ui/tasks/create"
                       hx-target="#task-list"
                       hx-swap="innerHTML"
-                      @htmx:after-request="modalOpen = false; $event.detail.elt.reset();">
+                      @htmx:after-request="if($event.detail.successful) { modalOpen = false; $event.detail.elt.reset(); }">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <div class="form-group">
                         <label for="title">Title</label>
@@ -146,38 +146,36 @@
     </script>
 
     <th:block th:fragment="taskList">
-        <div id="task-list" class="tasks-grid">
-            <th:block th:if="${tasks != null and !tasks.isEmpty()}">
-                <div th:each="task : ${tasks}"
-                     class="task-card"
-                     th:classappend="'priority-' + ${task.priority}"
-                     th:attr="data-status=${task.status}">
-                    <h3 th:text="${task.title}"></h3>
-                    <p class="task-desc" th:if="${task.description}" th:text="${task.description}"></p>
-                    <div class="task-meta">
-                        <span class="badge" th:classappend="'badge-status-' + ${task.status}" th:text="${task.status}"></span>
-                        <span class="badge" th:classappend="'badge-priority-' + ${task.priority}" th:text="${task.priority}"></span>
-                        <span class="task-due" th:if="${task.dueDate}" th:text="${task.dueDate}"></span>
-                    </div>
-                    <div class="task-actions">
-                        <button th:if="${task.status != 'DONE'}"
-                                th:attr="hx-post='/ui/tasks/' + ${task.id} + '/done'"
-                                hx-target="#task-list"
-                                hx-swap="outerHTML"
-                                class="btn-sm btn-done">&#10003; Done</button>
-                        <button th:attr="hx-delete='/ui/tasks/' + ${task.id}"
-                                hx-target="#task-list"
-                                hx-swap="outerHTML"
-                                hx-confirm="Delete this task?"
-                                class="btn-sm btn-danger">Delete</button>
-                    </div>
+        <th:block th:if="${tasks != null and !tasks.isEmpty()}">
+            <div th:each="task : ${tasks}"
+                 class="task-card"
+                 th:classappend="'priority-' + ${task.priority}"
+                 th:attr="data-status=${task.status}">
+                <h3 th:text="${task.title}"></h3>
+                <p class="task-desc" th:if="${task.description}" th:text="${task.description}"></p>
+                <div class="task-meta">
+                    <span class="badge" th:classappend="'badge-status-' + ${task.status}" th:text="${task.status}"></span>
+                    <span class="badge" th:classappend="'badge-priority-' + ${task.priority}" th:text="${task.priority}"></span>
+                    <span class="task-due" th:if="${task.dueDate}" th:text="${task.dueDate}"></span>
                 </div>
-            </th:block>
-            <div th:if="${tasks == null or tasks.isEmpty()}" class="empty-state">
-                <div class="empty-state-icon">&#128203;</div>
-                <p>No tasks yet</p>
-                <p class="sub">Create your first task to get started!</p>
+                <div class="task-actions">
+                    <button th:if="${task.status != 'DONE'}"
+                            th:attr="hx-post='/ui/tasks/' + ${task.id} + '/done'"
+                            hx-target="#task-list"
+                            hx-swap="innerHTML"
+                            class="btn-sm btn-done">&#10003; Done</button>
+                    <button th:attr="hx-delete='/ui/tasks/' + ${task.id}"
+                            hx-target="#task-list"
+                            hx-swap="innerHTML"
+                            hx-confirm="Delete this task?"
+                            class="btn-sm btn-danger">Delete</button>
+                </div>
             </div>
+        </th:block>
+        <div th:if="${tasks == null or tasks.isEmpty()}" class="empty-state">
+            <div class="empty-state-icon">&#128203;</div>
+            <p>No tasks yet</p>
+            <p class="sub">Create your first task to get started!</p>
         </div>
     </th:block>
 
