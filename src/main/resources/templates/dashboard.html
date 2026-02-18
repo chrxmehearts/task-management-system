@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — TaskFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/app.css}" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.14.3/dist/cdn.min.js"></script>
+</head>
+<body hx-headers='{"X-XSRF-TOKEN": "[[${_csrf.token}]]"}'>
+
+    <div class="dashboard-layout" x-data="{ modalOpen: false, filter: 'ALL' }">
+
+        <aside class="sidebar">
+            <div class="sidebar-logo">TaskFlow</div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="sidebar-nav-item active">
+                    <svg class="sidebar-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                    My Tasks
+                </a>
+                <span class="sidebar-nav-item disabled">
+                    <svg class="sidebar-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    Statistics
+                </span>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-avatar" th:text="${session.username != null ? session.username.substring(0,1).toUpperCase() : '?'}">U</div>
+                    <span class="sidebar-username" th:text="${session.username ?: 'Guest'}">User</span>
+                </div>
+                <form th:action="@{/ui/logout}" method="post" style="margin: 0;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="sidebar-logout-btn" title="Logout">
+                        <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1>My Tasks</h1>
+                <button @click="modalOpen = true" class="btn-primary">+ New Task</button>
+            </div>
+
+            <div class="stats-row" id="stats-row">
+                <div class="stat-card">
+                    <div class="stat-card-label">Total Tasks</div>
+                    <div class="stat-card-value" id="stat-total">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">In Progress</div>
+                    <div class="stat-card-value" id="stat-progress">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">Completed</div>
+                    <div class="stat-card-value" id="stat-done">-</div>
+                </div>
+            </div>
+
+            <div class="filter-tabs">
+                <button class="filter-tab" :class="{ active: filter === 'ALL' }" @click="filter = 'ALL'">All</button>
+                <button class="filter-tab" :class="{ active: filter === 'TODO' }" @click="filter = 'TODO'">Todo</button>
+                <button class="filter-tab" :class="{ active: filter === 'IN_PROGRESS' }" @click="filter = 'IN_PROGRESS'">In Progress</button>
+                <button class="filter-tab" :class="{ active: filter === 'DONE' }" @click="filter = 'DONE'">Done</button>
+            </div>
+
+            <div id="task-list"
+                 hx-get="/ui/tasks/list"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="loading">Loading tasks...</div>
+            </div>
+        </main>
+
+        <div class="modal-overlay" :class="{ 'open': modalOpen }" @click.self="modalOpen = false" @keydown.escape.window="modalOpen = false">
+            <div class="modal">
+                <h3>Create New Task</h3>
+                <form hx-post="/ui/tasks/create"
+                      hx-target="#task-list"
+                      hx-swap="innerHTML"
+                      @htmx:after-request="modalOpen = false; $event.detail.elt.reset();">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <input type="text" id="title" name="title" placeholder="Task title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" placeholder="Optional description"></textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="priority">Priority</label>
+                            <select id="priority" name="priority">
+                                <option value="LOW">Low</option>
+                                <option value="MEDIUM" selected>Medium</option>
+                                <option value="HIGH">High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status" name="status">
+                                <option value="TODO" selected>Todo</option>
+                                <option value="IN_PROGRESS">In Progress</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="dueDate">Due Date</label>
+                        <input type="date" id="dueDate" name="dueDate">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" @click="modalOpen = false">Cancel</button>
+                        <button type="submit" class="btn-primary">Create Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.body.addEventListener('htmx:afterSettle', function(event) {
+            if (event.detail.target.id === 'task-list') {
+                var cards = event.detail.target.querySelectorAll('.task-card');
+                var total = cards.length;
+                var progress = 0;
+                var done = 0;
+                cards.forEach(function(card) {
+                    var statusBadge = card.querySelector('[class*="badge-status-"]');
+                    if (statusBadge) {
+                        if (statusBadge.classList.contains('badge-status-IN_PROGRESS')) progress++;
+                        if (statusBadge.classList.contains('badge-status-DONE')) done++;
+                    }
+                });
+                document.getElementById('stat-total').textContent = total;
+                document.getElementById('stat-progress').textContent = progress;
+                document.getElementById('stat-done').textContent = done;
+            }
+        });
+    </script>
+
+    <th:block th:fragment="taskList">
+        <div id="task-list" class="tasks-grid">
+            <th:block th:if="${tasks != null and !tasks.isEmpty()}">
+                <div th:each="task : ${tasks}"
+                     class="task-card"
+                     th:classappend="'priority-' + ${task.priority}"
+                     th:attr="data-status=${task.status}">
+                    <h3 th:text="${task.title}"></h3>
+                    <p class="task-desc" th:if="${task.description}" th:text="${task.description}"></p>
+                    <div class="task-meta">
+                        <span class="badge" th:classappend="'badge-status-' + ${task.status}" th:text="${task.status}"></span>
+                        <span class="badge" th:classappend="'badge-priority-' + ${task.priority}" th:text="${task.priority}"></span>
+                        <span class="task-due" th:if="${task.dueDate}" th:text="${task.dueDate}"></span>
+                    </div>
+                    <div class="task-actions">
+                        <button th:if="${task.status != 'DONE'}"
+                                th:attr="hx-post='/ui/tasks/' + ${task.id} + '/done'"
+                                hx-target="#task-list"
+                                hx-swap="outerHTML"
+                                class="btn-sm btn-done">&#10003; Done</button>
+                        <button th:attr="hx-delete='/ui/tasks/' + ${task.id}"
+                                hx-target="#task-list"
+                                hx-swap="outerHTML"
+                                hx-confirm="Delete this task?"
+                                class="btn-sm btn-danger">Delete</button>
+                    </div>
+                </div>
+            </th:block>
+            <div th:if="${tasks == null or tasks.isEmpty()}" class="empty-state">
+                <div class="empty-state-icon">&#128203;</div>
+                <p>No tasks yet</p>
+                <p class="sub">Create your first task to get started!</p>
+            </div>
+        </div>
+    </th:block>
+
+</body>
+</html>
