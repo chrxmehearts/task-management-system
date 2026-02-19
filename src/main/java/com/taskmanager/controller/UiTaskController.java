@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -118,6 +119,17 @@ public class UiTaskController {
         List<TaskResponseDto> tasks = taskService.getAllTasks(userId);
         model.addAttribute("tasks", tasks);
         return "task-list :: taskList";
+    }
+
+    @PostMapping("/{id}/status")
+    @ResponseBody
+    public ResponseEntity<Void> moveTask(@PathVariable Long id,
+                                         @RequestParam String status,
+                                         HttpSession session) {
+        Long userId = getUserIdFromSession(session);
+        if (userId == null) return ResponseEntity.status(401).build();
+        taskService.updateTask(id, TaskUpdateDto.builder().status(status).build(), userId);
+        return ResponseEntity.noContent().build();
     }
 
     private String handleUnauthorized(HttpServletRequest request, HttpServletResponse response) {

@@ -10,6 +10,7 @@
     <link th:href="@{/css/app.css}" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@2.0.3"></script>
     <script defer src="https://unpkg.com/alpinejs@3.14.3/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
 </head>
 <body>
 
@@ -19,8 +20,7 @@
            editOpen: false,
            editTask: { id: null, title: '', description: '', status: 'TODO', priority: 'MEDIUM', dueDate: '' },
            deleteOpen: false,
-           deleteId: null,
-           filter: 'ALL'
+           deleteId: null
          }"
          @task-created.window="modalOpen = false"
          @edit-saved.window="editOpen = false"
@@ -80,18 +80,76 @@
                 </div>
             </div>
 
-            <div class="filter-tabs">
-                <button class="filter-tab" :class="{ active: filter === 'ALL' }"         @click="filter = 'ALL';         applyFilter('ALL')">All</button>
-                <button class="filter-tab" :class="{ active: filter === 'TODO' }"        @click="filter = 'TODO';        applyFilter('TODO')">Todo</button>
-                <button class="filter-tab" :class="{ active: filter === 'IN_PROGRESS' }" @click="filter = 'IN_PROGRESS'; applyFilter('IN_PROGRESS')">In Progress</button>
-                <button class="filter-tab" :class="{ active: filter === 'DONE' }"        @click="filter = 'DONE';        applyFilter('DONE')">Done</button>
-            </div>
-
-            <div id="task-list" class="tasks-grid"
+            <!-- Hidden HTMX target — JS redistributes cards into the columns below -->
+            <div id="task-list" style="display:none"
                  hx-get="/ui/tasks/list"
                  hx-trigger="load"
-                 hx-swap="innerHTML">
-                <div class="loading">Loading tasks…</div>
+                 hx-swap="innerHTML"></div>
+
+            <div class="kanban-board">
+
+                <!-- TODO -->
+                <div class="kanban-column kanban-col-todo">
+                    <div class="kanban-col-header">
+                        <span class="kanban-dot dot-todo"></span>
+                        <span class="kanban-col-title">Todo</span>
+                        <span class="kanban-col-count" id="count-todo">—</span>
+                        <div class="kanban-sort-wrap">
+                            <select class="kanban-sort" id="sort-todo" onchange="sortColumn('todo')">
+                                <option value="priority">Priority</option>
+                                <option value="due-asc">Due Date</option>
+                                <option value="overdue">Overdue First</option>
+                                <option value="created-desc">Newest</option>
+                                <option value="title">A → Z</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="kanban-col-body" id="body-todo">
+                        <div class="col-empty">Loading…</div>
+                    </div>
+                </div>
+
+                <!-- IN PROGRESS -->
+                <div class="kanban-column kanban-col-progress">
+                    <div class="kanban-col-header">
+                        <span class="kanban-dot dot-progress"></span>
+                        <span class="kanban-col-title">In Progress</span>
+                        <span class="kanban-col-count" id="count-progress">—</span>
+                        <div class="kanban-sort-wrap">
+                            <select class="kanban-sort" id="sort-progress" onchange="sortColumn('progress')">
+                                <option value="priority">Priority</option>
+                                <option value="due-asc">Due Date</option>
+                                <option value="overdue">Overdue First</option>
+                                <option value="created-desc">Newest</option>
+                                <option value="title">A → Z</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="kanban-col-body" id="body-progress">
+                        <div class="col-empty">Loading…</div>
+                    </div>
+                </div>
+
+                <!-- DONE -->
+                <div class="kanban-column kanban-col-done">
+                    <div class="kanban-col-header">
+                        <span class="kanban-dot dot-done"></span>
+                        <span class="kanban-col-title">Done</span>
+                        <span class="kanban-col-count" id="count-done">—</span>
+                        <div class="kanban-sort-wrap">
+                            <select class="kanban-sort" id="sort-done" onchange="sortColumn('done')">
+                                <option value="priority">Priority</option>
+                                <option value="due-asc">Due Date</option>
+                                <option value="created-desc">Newest</option>
+                                <option value="title">A → Z</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="kanban-col-body" id="body-done">
+                        <div class="col-empty">Loading…</div>
+                    </div>
+                </div>
+
             </div>
         </main>
 
@@ -220,46 +278,209 @@
             if (match) evt.detail.headers['X-XSRF-TOKEN'] = decodeURIComponent(match[1]);
         });
 
-        var currentFilter = 'ALL';
+        var TODAY = new Date().toISOString().split('T')[0];
+        var PRI   = { HIGH: 0, MEDIUM: 1, LOW: 2 };
 
-        function applyFilter(status) {
-            currentFilter = status;
-            document.querySelectorAll('.task-card').forEach(function(card) {
-                card.style.display = (status === 'ALL' || card.dataset.status === status) ? '' : 'none';
+        var COL_STATUS = { 'body-todo': 'TODO', 'body-progress': 'IN_PROGRESS', 'body-done': 'DONE' };
+        var STATUS_LABEL = { TODO: 'Todo', IN_PROGRESS: 'In Progress', DONE: 'Done' };
+        var sortableReady = false;
+
+        function getCsrfToken() {
+            var m = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+            return m ? decodeURIComponent(m[1]) : '';
+        }
+
+        function syncEmptyState(colBody) {
+            var has = colBody.querySelectorAll('.task-card').length > 0;
+            var existing = colBody.querySelector('.col-empty');
+            if (!has && !existing) {
+                var d = document.createElement('div');
+                d.className = 'col-empty';
+                d.textContent = 'Nothing here';
+                colBody.appendChild(d);
+            } else if (has && existing) {
+                existing.remove();
+            }
+        }
+
+        function updateAllCounts() {
+            var cT = document.querySelectorAll('#body-todo .task-card').length;
+            var cP = document.querySelectorAll('#body-progress .task-card').length;
+            var cD = document.querySelectorAll('#body-done .task-card').length;
+            document.getElementById('count-todo').textContent     = cT;
+            document.getElementById('count-progress').textContent = cP;
+            document.getElementById('count-done').textContent     = cD;
+            document.getElementById('stat-total').textContent    = cT + cP + cD;
+            document.getElementById('stat-progress').textContent = cP;
+            document.getElementById('stat-done').textContent     = cD;
+        }
+
+        function updateCardForStatus(card, newStatus) {
+            card.dataset.status = newStatus;
+
+            var badge = card.querySelector('[class*="badge-status-"]');
+            if (badge) {
+                badge.className = badge.className.replace(/badge-status-\S+/g, '').trim();
+                badge.classList.add('badge-status-' + newStatus);
+                badge.textContent = STATUS_LABEL[newStatus] || newStatus;
+            }
+
+            var overdue = newStatus !== 'DONE' && card.dataset.dueDate && card.dataset.dueDate < TODAY;
+            card.classList.toggle('is-overdue', !!overdue);
+
+            var doneBtn = card.querySelector('.btn-done');
+            if (newStatus === 'DONE') {
+                if (doneBtn) doneBtn.style.display = 'none';
+            } else {
+                if (doneBtn) {
+                    doneBtn.style.display = '';
+                } else {
+                    var actions = card.querySelector('.task-actions');
+                    var delBtn  = actions && actions.querySelector('.btn-danger');
+                    var btn = document.createElement('button');
+                    btn.className = 'btn-sm btn-done';
+                    btn.textContent = '✓ Done';
+                    btn.setAttribute('hx-post', '/ui/tasks/' + card.dataset.id + '/done');
+                    btn.setAttribute('hx-target', '#task-list');
+                    btn.setAttribute('hx-swap', 'innerHTML');
+                    htmx.process(btn);
+                    if (actions) actions.insertBefore(btn, delBtn || null);
+                }
+            }
+        }
+
+        function initSortable() {
+            if (sortableReady) return;
+            sortableReady = true;
+            ['body-todo', 'body-progress', 'body-done'].forEach(function(bodyId) {
+                var el = document.getElementById(bodyId);
+                if (!el) return;
+                Sortable.create(el, {
+                    group:       'tasks',
+                    animation:   200,
+                    easing:      'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    ghostClass:  'task-ghost',
+                    chosenClass: 'task-chosen',
+                    dragClass:   'task-dragging',
+                    filter:      '.col-empty',
+                    onEnd: function(evt) {
+                        if (evt.from === evt.to) return;
+                        var card      = evt.item;
+                        var newStatus = COL_STATUS[evt.to.id];
+                        if (!newStatus) return;
+                        updateCardForStatus(card, newStatus);
+                        syncEmptyState(evt.from);
+                        syncEmptyState(evt.to);
+                        updateAllCounts();
+                        var fd = new FormData();
+                        fd.append('status', newStatus);
+                        fetch('/ui/tasks/' + card.dataset.id + '/status', {
+                            method:  'POST',
+                            headers: { 'X-XSRF-TOKEN': getCsrfToken() },
+                            body:    fd
+                        }).then(function(r) {
+                            if (r.status === 401) window.location.href = '/login';
+                        });
+                    }
+                });
             });
         }
+
+        function compareDueDate(a, b) {
+            var ad = a.dataset.dueDate || '', bd = b.dataset.dueDate || '';
+            if (!ad && !bd) return 0;
+            if (!ad) return 1;
+            if (!bd) return -1;
+            return ad < bd ? -1 : ad > bd ? 1 : 0;
+        }
+
+        function sortCards(container, by) {
+            var cards = Array.from(container.querySelectorAll('.task-card'));
+            if (cards.length < 2) return;
+            cards.sort(function(a, b) {
+                if (by === 'priority') {
+                    var d = (PRI[a.dataset.priority] ?? 3) - (PRI[b.dataset.priority] ?? 3);
+                    return d !== 0 ? d : compareDueDate(a, b);
+                }
+                if (by === 'due-asc') return compareDueDate(a, b);
+                if (by === 'overdue') {
+                    var ao = (a.dataset.dueDate && a.dataset.dueDate < TODAY) ? 0 : 1;
+                    var bo = (b.dataset.dueDate && b.dataset.dueDate < TODAY) ? 0 : 1;
+                    if (ao !== bo) return ao - bo;
+                    return compareDueDate(a, b);
+                }
+                if (by === 'created-desc') {
+                    var ac = a.dataset.createdAt || '', bc = b.dataset.createdAt || '';
+                    return bc < ac ? -1 : bc > ac ? 1 : 0;
+                }
+                if (by === 'title') return (a.dataset.title || '').localeCompare(b.dataset.title || '');
+                return 0;
+            });
+            cards.forEach(function(c) { container.appendChild(c); });
+        }
+
+        function sortColumn(col) {
+            var body = document.getElementById('body-' + col);
+            var sel  = document.getElementById('sort-' + col);
+            if (body && sel) sortCards(body, sel.value);
+        }
+
+        function distributeAndSort() {
+            var src   = document.getElementById('task-list');
+            var bTodo = document.getElementById('body-todo');
+            var bProg = document.getElementById('body-progress');
+            var bDone = document.getElementById('body-done');
+
+            bTodo.innerHTML = ''; bProg.innerHTML = ''; bDone.innerHTML = '';
+            var cT = 0, cP = 0, cD = 0;
+
+            src.querySelectorAll('.task-card').forEach(function(card) {
+                var s = card.dataset.status;
+                var overdue = s !== 'DONE' && card.dataset.dueDate && card.dataset.dueDate < TODAY;
+                card.classList.toggle('is-overdue', !!overdue);
+                if      (s === 'TODO')        { bTodo.appendChild(card); cT++; }
+                else if (s === 'IN_PROGRESS') { bProg.appendChild(card); cP++; }
+                else if (s === 'DONE')        { bDone.appendChild(card); cD++; }
+            });
+
+            var empty = '<div class="col-empty">Nothing here</div>';
+            if (cT === 0) bTodo.innerHTML = empty;
+            if (cP === 0) bProg.innerHTML = empty;
+            if (cD === 0) bDone.innerHTML = empty;
+
+            if (cT > 0) sortCards(bTodo, document.getElementById('sort-todo').value);
+            if (cP > 0) sortCards(bProg, document.getElementById('sort-progress').value);
+            if (cD > 0) sortCards(bDone, document.getElementById('sort-done').value);
+
+            document.getElementById('stat-total').textContent    = cT + cP + cD;
+            document.getElementById('stat-progress').textContent = cP;
+            document.getElementById('stat-done').textContent     = cD;
+            document.getElementById('count-todo').textContent     = cT;
+            document.getElementById('count-progress').textContent = cP;
+            document.getElementById('count-done').textContent     = cD;
+
+            initSortable();
+        }
+
+        document.body.addEventListener('htmx:afterSettle', function(evt) {
+            if (evt.detail.target.id === 'task-list') distributeAndSort();
+        });
 
         function openManageModal(btn) {
             var card = btn.closest('.task-card');
             document.dispatchEvent(new CustomEvent('open-edit', { detail: {
-                id: card.dataset.id,
-                title: card.dataset.title,
+                id:          card.dataset.id,
+                title:       card.dataset.title,
                 description: card.dataset.description || '',
-                status: card.dataset.status,
-                priority: card.dataset.priority,
-                dueDate: card.dataset.dueDate || ''
+                status:      card.dataset.status,
+                priority:    card.dataset.priority,
+                dueDate:     card.dataset.dueDate || ''
             }}));
         }
 
         function openDeleteModal(id) {
             document.dispatchEvent(new CustomEvent('open-delete', { detail: id }));
         }
-
-        document.body.addEventListener('htmx:afterSettle', function(event) {
-            if (event.detail.target.id !== 'task-list') return;
-
-            var cards = event.detail.target.querySelectorAll('.task-card');
-            var progress = 0, done = 0;
-            cards.forEach(function(card) {
-                if (card.dataset.status === 'IN_PROGRESS') progress++;
-                if (card.dataset.status === 'DONE') done++;
-            });
-            document.getElementById('stat-total').textContent    = cards.length;
-            document.getElementById('stat-progress').textContent = progress;
-            document.getElementById('stat-done').textContent     = done;
-
-            applyFilter(currentFilter);
-        });
     </script>
 
 </body>

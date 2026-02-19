@@ -1312,3 +1312,132 @@ body.landing a {
   .score-hero  { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
   .kpi-grid    { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ============================================================
+   KANBAN BOARD
+   ============================================================ */
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.kanban-column {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.kanban-col-todo     { border-top-color: var(--color-primary); }
+.kanban-col-progress { border-top-color: var(--color-warning); }
+.kanban-col-done     { border-top-color: var(--color-success); }
+
+.kanban-col-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.kanban-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-todo     { background: var(--color-primary); }
+.dot-progress { background: var(--color-warning); }
+.dot-done     { background: var(--color-success); }
+
+.kanban-col-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text);
+  flex: 1;
+}
+
+.kanban-col-count {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-faint);
+  background: var(--color-surface-raised);
+  padding: 0.1rem 0.5rem;
+  border-radius: 10px;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.kanban-sort-wrap { position: relative; }
+
+.kanban-sort {
+  appearance: none;
+  -webkit-appearance: none;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  background-color: var(--color-surface-raised);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23606070' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.45rem center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 1.5rem 0.2rem 0.55rem;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: border-color var(--transition);
+}
+
+.kanban-sort:hover  { border-color: var(--color-border-strong); }
+.kanban-sort:focus  { outline: none; border-color: var(--color-primary); box-shadow: var(--shadow-input-focus); }
+
+.kanban-col-body {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  min-height: 80px;
+}
+
+.col-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--color-text-faint);
+  font-size: 0.8rem;
+}
+
+/* Drag affordance */
+.task-card { cursor: grab; }
+.task-card:active { cursor: grabbing; }
+
+/* SortableJS drag states */
+.task-ghost {
+  opacity: 0.28;
+  background: var(--color-primary-light);
+  border: 1px dashed rgba(94, 106, 210, 0.5);
+  border-radius: var(--radius-md);
+}
+
+.task-dragging {
+  opacity: 0.96;
+  cursor: grabbing !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55), 0 6px 20px rgba(0, 0, 0, 0.35);
+  transform: rotate(1.2deg) scale(1.02);
+  z-index: 9999;
+}
+
+/* Drop zone highlight when a card hovers over a column body */
+.kanban-col-body.sortable-drag { background: var(--color-primary-light); border-radius: var(--radius-md); }
+
+/* Overdue indicator */
+.task-card.is-overdue { border-left-color: var(--color-danger) !important; }
+.task-card.is-overdue .task-due { color: var(--color-danger); font-weight: 500; }
+.task-card.is-overdue .task-due::after { content: ' · Overdue'; }
+
+/* Kanban responsive */
+@media (max-width: 960px) { .kanban-board { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .kanban-board { grid-template-columns: 1fr; } }

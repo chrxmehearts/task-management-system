@@ -6,7 +6,7 @@
         <div th:each="task : ${tasks}"
              class="task-card"
              th:classappend="'priority-' + ${task.priority}"
-             th:attr="data-status=${task.status},data-id=${task.id},data-title=${task.title},data-description=${task.description ?: ''},data-priority=${task.priority},data-due-date=${task.dueDate ?: ''}">
+             th:attr="data-status=${task.status},data-id=${task.id},data-title=${task.title},data-description=${task.description ?: ''},data-priority=${task.priority},data-due-date=${task.dueDate ?: ''},data-created-at=${task.createdAt}">
             <h3 th:text="${task.title}"></h3>
             <p class="task-desc" th:if="${task.description}" th:text="${task.description}"></p>
             <div class="task-meta">
