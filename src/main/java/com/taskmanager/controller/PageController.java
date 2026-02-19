@@ -1,6 +1,5 @@
 package com.taskmanager.controller;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -27,10 +26,7 @@ public class PageController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboardPage(HttpSession session) {
-        if (session.getAttribute("jwt_token") == null) {
-            return "redirect:/login";
-        }
+    public String dashboardPage() {
         return "dashboard";
     }
 }
