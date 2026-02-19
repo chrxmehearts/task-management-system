@@ -34,7 +34,7 @@ public class UiTaskController {
 
         List<TaskResponseDto> tasks = taskService.getAllTasks(userId);
         model.addAttribute("tasks", tasks);
-        return "dashboard :: taskList";
+        return "task-list :: taskList";
     }
 
     @PostMapping("/create")
@@ -59,7 +59,33 @@ public class UiTaskController {
 
         List<TaskResponseDto> tasks = taskService.getAllTasks(userId);
         model.addAttribute("tasks", tasks);
-        return "dashboard :: taskList";
+        return "task-list :: taskList";
+    }
+
+    @PostMapping("/update")
+    public String updateTask(@RequestParam Long taskId,
+                             @RequestParam(required = false) String title,
+                             @RequestParam(required = false) String description,
+                             @RequestParam(required = false) String status,
+                             @RequestParam(required = false) String priority,
+                             @RequestParam(required = false) String dueDate,
+                             HttpSession session, Model model) {
+        Long userId = getUserIdFromSession(session);
+        if (userId == null) return "redirect:/login";
+
+        TaskUpdateDto updateDto = TaskUpdateDto.builder()
+                .title(title)
+                .description(description)
+                .status(status)
+                .priority(priority)
+                .dueDate(dueDate != null && !dueDate.isBlank() ? LocalDate.parse(dueDate) : null)
+                .build();
+
+        taskService.updateTask(taskId, updateDto, userId);
+
+        List<TaskResponseDto> tasks = taskService.getAllTasks(userId);
+        model.addAttribute("tasks", tasks);
+        return "task-list :: taskList";
     }
 
     @DeleteMapping("/{id}")
@@ -71,7 +97,7 @@ public class UiTaskController {
 
         List<TaskResponseDto> tasks = taskService.getAllTasks(userId);
         model.addAttribute("tasks", tasks);
-        return "dashboard :: taskList";
+        return "task-list :: taskList";
     }
 
     @PostMapping("/{id}/done")
@@ -84,7 +110,7 @@ public class UiTaskController {
 
         List<TaskResponseDto> tasks = taskService.getAllTasks(userId);
         model.addAttribute("tasks", tasks);
-        return "dashboard :: taskList";
+        return "task-list :: taskList";
     }
 
     private Long getUserIdFromSession(HttpSession session) {

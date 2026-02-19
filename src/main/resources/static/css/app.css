@@ -216,6 +216,41 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
 
 .btn-done:hover { background: rgba(74, 222, 128, 0.16); }
 
+.btn-manage {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.7rem;
+  background: var(--color-primary-light);
+  color: #8B96E9;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.btn-manage:hover { background: rgba(94, 106, 210, 0.2); }
+
+.btn-danger-solid {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--color-danger);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.btn-danger-solid:hover { opacity: 0.85; }
+
 /* ── Auth pages ──────────────────────────────────────────── */
 
 .auth-wrapper {
@@ -315,7 +350,9 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
 
 /* ── Dashboard layout ────────────────────────────────────── */
 
-.dashboard-layout { display: flex; min-height: 100vh; }
+body:has(.dashboard-layout) { overflow: hidden; height: 100vh; }
+
+.dashboard-layout { display: flex; height: 100vh; overflow: hidden; }
 
 .sidebar {
   width: 240px;
@@ -419,7 +456,7 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
 
 .sidebar-logout-btn:hover { color: var(--color-text-muted); background: rgba(255, 255, 255, 0.06); }
 
-.main-content { flex: 1; margin-left: 240px; padding: 2rem 2.25rem; min-height: 100vh; }
+.main-content { flex: 1; margin-left: 240px; padding: 2rem 2.25rem; height: 100vh; overflow-y: auto; }
 
 .page-header {
   display: flex;
@@ -607,6 +644,29 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
 }
 
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.625rem; margin-top: 1.25rem; }
+
+.modal-sm { max-width: 380px; text-align: center; }
+.modal-sm .modal-actions { justify-content: center; }
+
+.modal-danger-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-danger-light);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  color: var(--color-danger);
+}
+
+.modal-body-text {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+  line-height: 1.55;
+}
 
 /* ── Empty state ─────────────────────────────────────────── */
 

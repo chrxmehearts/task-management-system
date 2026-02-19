@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="taskList">
+    <th:block th:if="${tasks != null and !tasks.isEmpty()}">
+        <div th:each="task : ${tasks}"
+             class="task-card"
+             th:classappend="'priority-' + ${task.priority}"
+             th:attr="data-status=${task.status},data-id=${task.id},data-title=${task.title},data-description=${task.description ?: ''},data-priority=${task.priority},data-due-date=${task.dueDate ?: ''}">
+            <h3 th:text="${task.title}"></h3>
+            <p class="task-desc" th:if="${task.description}" th:text="${task.description}"></p>
+            <div class="task-meta">
+                <span class="badge"
+                      th:classappend="'badge-status-' + ${task.status}"
+                      th:text="${task.status == 'TODO' ? 'Todo' : task.status == 'IN_PROGRESS' ? 'In Progress' : 'Done'}"></span>
+                <span class="badge"
+                      th:classappend="'badge-priority-' + ${task.priority}"
+                      th:text="${#strings.capitalize(task.priority.toLowerCase())}"></span>
+                <span class="task-due" th:if="${task.dueDate}" th:text="${task.dueDate}"></span>
+            </div>
+            <div class="task-actions">
+                <button class="btn-sm btn-manage" onclick="openManageModal(this)">&#9998; Manage</button>
+                <button th:if="${task.status != 'DONE'}"
+                        th:attr="hx-post='/ui/tasks/' + ${task.id} + '/done'"
+                        hx-target="#task-list"
+                        hx-swap="innerHTML"
+                        class="btn-sm btn-done">&#10003; Done</button>
+                <button th:attr="onclick='openDeleteModal(' + ${task.id} + ')'"
+                        class="btn-sm btn-danger">Delete</button>
+            </div>
+        </div>
+    </th:block>
+    <div th:if="${tasks == null or tasks.isEmpty()}" class="empty-state">
+        <div class="empty-state-icon">&#10003;</div>
+        <p>No tasks yet</p>
+    </div>
+</th:block>
+</body>
+</html>
