@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,10 +12,15 @@
 </head>
 <body>
     <div class="auth-wrapper">
-        <div class="auth-card" x-data="{ password: '', confirmPassword: '', get mismatch() { return this.confirmPassword.length > 0 && this.password !== this.confirmPassword } }">
+        <div class="auth-card"
+             x-data="{ password: '', confirm: '', get mismatch() { return this.confirm.length > 0 && this.password !== this.confirm } }">
             <div class="auth-card-header">
-                <div class="auth-logo">TaskFlow</div>
-                <p class="auth-subtitle">Create your account to get started.</p>
+                <a th:href="@{/}" class="auth-logo">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#5E6AD2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    TaskFlow
+                </a>
+                <h1 class="auth-title">Create your account</h1>
+                <p class="auth-subtitle">Free forever. No credit card required.</p>
             </div>
             <div class="auth-card-body">
                 <div th:if="${param.error}" class="alert-error">
@@ -36,10 +41,12 @@
                         <input type="password" id="password" name="password" placeholder="Create a password" required x-model="password">
                     </div>
                     <div class="form-group">
-                        <label for="confirmPassword">Confirm Password</label>
-                        <input type="password" id="confirmPassword" placeholder="Repeat your password" required x-model="confirmPassword"
-                               :style="mismatch ? 'border-color: var(--color-danger)' : ''">
-                        <small x-show="mismatch" style="color: var(--color-danger); font-size: 0.79rem; margin-top: 0.25rem; display: block;">Passwords do not match</small>
+                        <label for="confirm">Confirm Password</label>
+                        <input type="password" id="confirm" placeholder="Repeat your password" required x-model="confirm"
+                               :style="mismatch ? 'border-color: var(--color-danger); box-shadow: 0 0 0 3px rgba(248,113,113,0.15)' : ''">
+                        <small x-show="mismatch" style="display:block;color:var(--color-danger);font-size:0.75rem;margin-top:0.375rem">
+                            Passwords do not match
+                        </small>
                     </div>
                     <button type="submit" class="btn-primary btn-full" :disabled="mismatch">Create Account</button>
                 </form>

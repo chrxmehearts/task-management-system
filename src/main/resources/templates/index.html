@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow — The task manager for focused teams</title>
+    <meta name="description" content="TaskFlow brings your tasks, priorities, and deadlines into one focused workspace. Organize, ship, and stay on top of everything that matters.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link th:href="@{/css/app.css}" rel="stylesheet">
+</head>
+<body class="landing">
+
+    <!-- ── NAVIGATION ─────────────────────────────────────────── -->
+    <nav class="lp-nav" id="lp-nav">
+        <div class="lp-nav-inner">
+            <a href="/" class="lp-logo">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#5E6AD2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                TaskFlow
+            </a>
+            <div class="lp-nav-links">
+                <a href="#features" class="lp-nav-link">Features</a>
+                <a href="#how-it-works" class="lp-nav-link">How it works</a>
+            </div>
+            <div class="lp-nav-actions">
+                <a th:href="@{/login}" class="lp-btn-ghost">Log in</a>
+                <a th:href="@{/register}" class="lp-btn-primary">Get started free</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ── HERO ───────────────────────────────────────────────── -->
+    <section class="lp-hero">
+        <div class="lp-hero-glow"></div>
+        <div class="lp-hero-noise"></div>
+        <div class="lp-container lp-hero-content">
+            <div class="lp-badge">
+                <span class="lp-badge-dot"></span>
+                Built for focused work
+            </div>
+            <h1 class="lp-hero-title">
+                Ship tasks.<br>
+                Build <span class="lp-gradient-text">momentum</span>.<br>
+                Stay focused.
+            </h1>
+            <p class="lp-hero-sub">
+                TaskFlow is the task manager built for people who want to move fast
+                without losing track. Organize, prioritize, and ship — all in one place.
+            </p>
+            <div class="lp-hero-actions">
+                <a th:href="@{/register}" class="lp-btn-primary lp-btn-lg">
+                    Get started free
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </a>
+                <a th:href="@{/login}" class="lp-btn-ghost lp-btn-lg">Log in to your account</a>
+            </div>
+            <p class="lp-hero-note">Free to use &nbsp;·&nbsp; No credit card &nbsp;·&nbsp; 2-minute setup</p>
+        </div>
+    </section>
+
+    <!-- ── STRIP ──────────────────────────────────────────────── -->
+    <div class="lp-strip">
+        <div class="lp-container">
+            <div class="lp-strip-grid">
+                <div class="lp-strip-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    <span>Task tracking</span>
+                </div>
+                <div class="lp-strip-divider"></div>
+                <div class="lp-strip-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                    <span>Priority levels</span>
+                </div>
+                <div class="lp-strip-divider"></div>
+                <div class="lp-strip-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Due dates</span>
+                </div>
+                <div class="lp-strip-divider"></div>
+                <div class="lp-strip-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                    <span>Clean dashboard</span>
+                </div>
+                <div class="lp-strip-divider"></div>
+                <div class="lp-strip-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <span>Private workspace</span>
+                </div>
+                <div class="lp-strip-divider"></div>
+                <div class="lp-strip-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>Status tracking</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── FEATURES ───────────────────────────────────────────── -->
+    <section class="lp-features" id="features">
+        <div class="lp-container">
+            <div class="lp-section-header animate-on-scroll">
+                <div class="lp-section-label">Features</div>
+                <h2 class="lp-section-title">Everything you need,<br>nothing you don't</h2>
+                <p class="lp-section-sub">A focused set of tools that help you stay organized without the bloat of heavyweight project management software.</p>
+            </div>
+            <div class="lp-features-grid">
+                <div class="lp-feature-card animate-on-scroll" style="transition-delay:0ms">
+                    <div class="lp-feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </div>
+                    <div class="lp-feature-title">Quick Task Creation</div>
+                    <p class="lp-feature-desc">Create tasks in seconds. Add a title, description, priority, and due date — then get back to work immediately.</p>
+                </div>
+                <div class="lp-feature-card animate-on-scroll" style="transition-delay:60ms">
+                    <div class="lp-feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                    </div>
+                    <div class="lp-feature-title">Priority Levels</div>
+                    <p class="lp-feature-desc">Mark tasks as Low, Medium, or High priority. Color-coded cards make it instantly clear what deserves your attention first.</p>
+                </div>
+                <div class="lp-feature-card animate-on-scroll" style="transition-delay:120ms">
+                    <div class="lp-feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="lp-feature-title">Status Tracking</div>
+                    <p class="lp-feature-desc">Move tasks through Todo, In Progress, and Done. Filter your board to see exactly what you need, when you need it.</p>
+                </div>
+                <div class="lp-feature-card animate-on-scroll" style="transition-delay:0ms">
+                    <div class="lp-feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </div>
+                    <div class="lp-feature-title">Due Date Tracking</div>
+                    <p class="lp-feature-desc">Set deadlines on tasks and always know what's coming up. Never miss an important deadline or lose track of a deliverable.</p>
+                </div>
+                <div class="lp-feature-card animate-on-scroll" style="transition-delay:60ms">
+                    <div class="lp-feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                    </div>
+                    <div class="lp-feature-title">Clean Dashboard</div>
+                    <p class="lp-feature-desc">A distraction-free workspace that surfaces your tasks in a scannable card grid. Your stats — total, in progress, done — always at a glance.</p>
+                </div>
+                <div class="lp-feature-card animate-on-scroll" style="transition-delay:120ms">
+                    <div class="lp-feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <div class="lp-feature-title">Private &amp; Secure</div>
+                    <p class="lp-feature-desc">Your workspace is yours alone. JWT-secured authentication ensures only you can access your tasks and data.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── HOW IT WORKS ───────────────────────────────────────── -->
+    <section class="lp-steps" id="how-it-works">
+        <div class="lp-container">
+            <div class="lp-section-header animate-on-scroll">
+                <div class="lp-section-label">How it works</div>
+                <h2 class="lp-section-title">Up and running in minutes</h2>
+                <p class="lp-section-sub">No onboarding calls. No lengthy setup. Just sign up and start shipping.</p>
+            </div>
+            <div class="lp-steps-grid">
+                <div class="lp-step animate-on-scroll" style="transition-delay:0ms">
+                    <div class="lp-step-number">01</div>
+                    <div class="lp-step-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
+                    </div>
+                    <div class="lp-step-title">Create your account</div>
+                    <p class="lp-step-desc">Sign up in seconds with just a username and password. No credit card, no email verification delays.</p>
+                </div>
+                <div class="lp-step-connector" aria-hidden="true"></div>
+                <div class="lp-step animate-on-scroll" style="transition-delay:120ms">
+                    <div class="lp-step-number">02</div>
+                    <div class="lp-step-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </div>
+                    <div class="lp-step-title">Add your tasks</div>
+                    <p class="lp-step-desc">Create tasks with titles, descriptions, priority levels, status, and due dates. Your board fills up in seconds.</p>
+                </div>
+                <div class="lp-step-connector" aria-hidden="true"></div>
+                <div class="lp-step animate-on-scroll" style="transition-delay:240ms">
+                    <div class="lp-step-number">03</div>
+                    <div class="lp-step-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div class="lp-step-title">Ship and stay on top</div>
+                    <p class="lp-step-desc">Mark tasks done as you go. Filter by status or priority. Watch your stats move — and feel the momentum build.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── CTA BANNER ─────────────────────────────────────────── -->
+    <section class="lp-cta">
+        <div class="lp-container">
+            <div class="lp-cta-inner animate-on-scroll">
+                <div class="lp-cta-glow"></div>
+                <div class="lp-cta-content">
+                    <h2 class="lp-cta-title">Ready to get organized?</h2>
+                    <p class="lp-cta-sub">Create your free account and start shipping tasks today. No setup cost, no hidden fees.</p>
+                    <div class="lp-cta-actions">
+                        <a th:href="@{/register}" class="lp-btn-primary lp-btn-lg">
+                            Create free account
+                        </a>
+                        <a th:href="@{/login}" class="lp-btn-ghost lp-btn-lg">Already have an account?</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── FOOTER ─────────────────────────────────────────────── -->
+    <footer class="lp-footer">
+        <div class="lp-container">
+            <div class="lp-footer-inner">
+                <a href="/" class="lp-logo lp-logo-sm">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#5E6AD2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    TaskFlow
+                </a>
+                <div class="lp-footer-links">
+                    <a th:href="@{/login}" class="lp-footer-link">Log in</a>
+                    <a th:href="@{/register}" class="lp-footer-link">Sign up</a>
+                </div>
+                <span class="lp-footer-copy">&copy; 2026 TaskFlow</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', e => {
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        const nav = document.getElementById('lp-nav');
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('lp-nav-scrolled', window.scrollY > 20);
+        }, { passive: true });
+    </script>
+
+</body>
+</html>
