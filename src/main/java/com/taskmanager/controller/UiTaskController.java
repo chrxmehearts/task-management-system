@@ -7,6 +7,8 @@ import com.taskmanager.entity.User;
 import com.taskmanager.repository.UserRepository;
 import com.taskmanager.security.JwtTokenProvider;
 import com.taskmanager.service.TaskService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +30,10 @@ public class UiTaskController {
     private final UserRepository userRepository;
 
     @GetMapping("/list")
-    public String listTasks(HttpSession session, Model model) {
+    public String listTasks(HttpSession session, Model model,
+                            HttpServletRequest request, HttpServletResponse response) {
         Long userId = getUserIdFromSession(session);
-        if (userId == null) return "redirect:/login";
+        if (userId == null) return handleUnauthorized(request, response);
 
         List<TaskResponseDto> tasks = taskService.getAllTasks(userId);
         model.addAttribute("tasks", tasks);
@@ -43,11 +46,12 @@ public class UiTaskController {
                              @RequestParam(required = false) String priority,
                              @RequestParam(required = false) String status,
                              @RequestParam(required = false) String dueDate,
-                             HttpSession session, Model model) {
+                             HttpSession session, Model model,
+                             HttpServletRequest request, HttpServletResponse response) {
         Long userId = getUserIdFromSession(session);
-        if (userId == null) return "redirect:/login";
+        if (userId == null) return handleUnauthorized(request, response);
 
-        TaskCreateDto request = TaskCreateDto.builder()
+        TaskCreateDto dto = TaskCreateDto.builder()
                 .title(title)
                 .description(description)
                 .priority(priority != null && !priority.isBlank() ? priority : "MEDIUM")
@@ -55,7 +59,7 @@ public class UiTaskController {
                 .dueDate(dueDate != null && !dueDate.isBlank() ? LocalDate.parse(dueDate) : null)
                 .build();
 
-        taskService.createTask(request, userId);
+        taskService.createTask(dto, userId);
 
         List<TaskResponseDto> tasks = taskService.getAllTasks(userId);
         model.addAttribute("tasks", tasks);
@@ -69,9 +73,10 @@ public class UiTaskController {
                              @RequestParam(required = false) String status,
                              @RequestParam(required = false) String priority,
                              @RequestParam(required = false) String dueDate,
-                             HttpSession session, Model model) {
+                             HttpSession session, Model model,
+                             HttpServletRequest request, HttpServletResponse response) {
         Long userId = getUserIdFromSession(session);
-        if (userId == null) return "redirect:/login";
+        if (userId == null) return handleUnauthorized(request, response);
 
         TaskUpdateDto updateDto = TaskUpdateDto.builder()
                 .title(title)
@@ -89,9 +94,10 @@ public class UiTaskController {
     }
 
     @DeleteMapping("/{id}")
-    public String deleteTask(@PathVariable Long id, HttpSession session, Model model) {
+    public String deleteTask(@PathVariable Long id, HttpSession session, Model model,
+                             HttpServletRequest request, HttpServletResponse response) {
         Long userId = getUserIdFromSession(session);
-        if (userId == null) return "redirect:/login";
+        if (userId == null) return handleUnauthorized(request, response);
 
         taskService.deleteTask(id, userId);
 
@@ -101,9 +107,10 @@ public class UiTaskController {
     }
 
     @PostMapping("/{id}/done")
-    public String markDone(@PathVariable Long id, HttpSession session, Model model) {
+    public String markDone(@PathVariable Long id, HttpSession session, Model model,
+                           HttpServletRequest request, HttpServletResponse response) {
         Long userId = getUserIdFromSession(session);
-        if (userId == null) return "redirect:/login";
+        if (userId == null) return handleUnauthorized(request, response);
 
         TaskUpdateDto updateDto = TaskUpdateDto.builder().status("DONE").build();
         taskService.updateTask(id, updateDto, userId);
@@ -111,6 +118,14 @@ public class UiTaskController {
         List<TaskResponseDto> tasks = taskService.getAllTasks(userId);
         model.addAttribute("tasks", tasks);
         return "task-list :: taskList";
+    }
+
+    private String handleUnauthorized(HttpServletRequest request, HttpServletResponse response) {
+        if ("true".equals(request.getHeader("HX-Request"))) {
+            response.setHeader("HX-Redirect", "/login");
+            return "fragments :: empty";
+        }
+        return "redirect:/login";
     }
 
     private Long getUserIdFromSession(HttpSession session) {

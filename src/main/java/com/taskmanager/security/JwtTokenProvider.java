@@ -41,6 +41,15 @@ public class JwtTokenProvider {
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
+    public boolean isTokenNotExpired(String token) {
+        try {
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            log.debug("Token validation failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
     private boolean isTokenExpired(String token) {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
