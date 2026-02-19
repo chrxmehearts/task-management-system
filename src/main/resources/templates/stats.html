@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics — TaskFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/app.css}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="dashboard-layout">
+
+    <aside class="sidebar">
+        <a href="/" class="sidebar-logo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            TaskFlow
+        </a>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="sidebar-nav-item">
+                <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                My Tasks
+            </a>
+            <a href="/stats" class="sidebar-nav-item active">
+                <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Statistics
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="sidebar-avatar" th:text="${session.username != null ? session.username.substring(0,1).toUpperCase() : '?'}">U</div>
+                <span class="sidebar-username" th:text="${session.username ?: 'User'}">User</span>
+            </div>
+            <form th:action="@{/ui/logout}" method="post" style="margin:0">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="sidebar-logout-btn" title="Log out">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="main-content stats-main">
+
+        <div class="page-header">
+            <h1>Statistics</h1>
+            <a href="/dashboard" class="btn-secondary" style="display:inline-flex;align-items:center;gap:0.4rem;text-decoration:none;font-size:0.875rem">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                My Tasks
+            </a>
+        </div>
+
+        <!-- Productivity Score Hero -->
+        <div class="score-hero stat-card-enter" style="animation-delay:0s">
+            <div class="score-ring-wrapper">
+                <svg class="score-ring" viewBox="0 0 160 160" aria-hidden="true">
+                    <circle class="score-track" cx="80" cy="80" r="62"/>
+                    <circle class="score-fill" cx="80" cy="80" r="62"
+                            transform="rotate(-90 80 80)"
+                            id="scoreCircle"
+                            th:attr="data-score=${productivityScore},data-color=${scoreColor}"/>
+                </svg>
+                <div class="score-center">
+                    <div class="score-number" id="scoreNumber">0</div>
+                    <div class="score-unit">/ 100</div>
+                </div>
+            </div>
+
+            <div class="score-details">
+                <div class="score-title-row">
+                    <span class="score-main-title">Productivity Score</span>
+                    <span class="score-grade" th:classappend="${scoreGradeClass}" th:text="${scoreGrade}">–</span>
+                </div>
+                <p class="score-message" th:text="${scoreMessage}">–</p>
+
+                <div class="score-components">
+                    <div class="score-component">
+                        <div class="score-component-header">
+                            <span>Completion Rate</span>
+                            <span th:text="${completionComponent} + ' / 40 pts'">0 / 40 pts</span>
+                        </div>
+                        <div class="score-component-bar">
+                            <div class="score-component-fill"
+                                 th:attr="data-width=${completionComponent * 100 / 40}"
+                                 style="background: var(--color-primary)"></div>
+                        </div>
+                    </div>
+                    <div class="score-component">
+                        <div class="score-component-header">
+                            <span>High-Priority Done</span>
+                            <span th:text="${highPriorityComponent} + ' / 25 pts'">0 / 25 pts</span>
+                        </div>
+                        <div class="score-component-bar">
+                            <div class="score-component-fill"
+                                 th:attr="data-width=${highPriorityComponent * 100 / 25}"
+                                 style="background: var(--color-danger)"></div>
+                        </div>
+                    </div>
+                    <div class="score-component">
+                        <div class="score-component-header">
+                            <span>Overdue Avoidance</span>
+                            <span th:text="${overdueComponent} + ' / 20 pts'">0 / 20 pts</span>
+                        </div>
+                        <div class="score-component-bar">
+                            <div class="score-component-fill"
+                                 th:attr="data-width=${overdueComponent * 100 / 20}"
+                                 style="background: var(--color-warning)"></div>
+                        </div>
+                    </div>
+                    <div class="score-component">
+                        <div class="score-component-header">
+                            <span>Active Work</span>
+                            <span th:text="${activeComponent} + ' / 15 pts'">0 / 15 pts</span>
+                        </div>
+                        <div class="score-component-bar">
+                            <div class="score-component-fill"
+                                 th:attr="data-width=${activeComponent * 100 / 15}"
+                                 style="background: var(--color-success)"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card stat-card-enter" style="animation-delay:0.08s">
+                <div class="kpi-label">Total Tasks</div>
+                <div class="kpi-value" id="kpi-total">0</div>
+                <div class="kpi-sub" th:text="${todo} + ' todo · ' + ${inProgress} + ' in progress'">—</div>
+            </div>
+            <div class="kpi-card kpi-success stat-card-enter" style="animation-delay:0.14s">
+                <div class="kpi-label">Completion Rate</div>
+                <div class="kpi-value"><span id="kpi-rate">0</span>%</div>
+                <div class="kpi-sub" th:text="${done} + ' of ' + ${total} + ' tasks done'">—</div>
+            </div>
+            <div class="kpi-card stat-card-enter" th:classappend="${overdue > 0 ? ' kpi-danger' : ' kpi-neutral'}" style="animation-delay:0.20s">
+                <div class="kpi-label">Overdue</div>
+                <div class="kpi-value" id="kpi-overdue">0</div>
+                <div class="kpi-sub" th:text="${overdue > 0 ? 'Needs immediate attention' : 'All tasks on schedule'}">—</div>
+            </div>
+            <div class="kpi-card kpi-warning stat-card-enter" style="animation-delay:0.26s">
+                <div class="kpi-label">In Progress</div>
+                <div class="kpi-value" id="kpi-progress">0</div>
+                <div class="kpi-sub" th:text="${dueSoon} + ' due within 3 days'">—</div>
+            </div>
+        </div>
+
+        <!-- Charts 2×2 Grid -->
+        <div class="charts-grid">
+
+            <!-- Status Distribution -->
+            <div class="chart-card stat-card-enter" style="animation-delay:0.32s">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">Status Distribution</div>
+                    <div class="chart-card-subtitle">How your tasks are split across stages</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Priority Breakdown -->
+            <div class="chart-card stat-card-enter" style="animation-delay:0.38s">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">Priority Breakdown</div>
+                    <div class="chart-card-subtitle">Task count by priority level</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Urgency Overview -->
+            <div class="chart-card stat-card-enter" style="animation-delay:0.44s">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">Urgency Overview</div>
+                    <div class="chart-card-subtitle">Active tasks grouped by deadline urgency</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="urgencyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Priority × Status -->
+            <div class="chart-card stat-card-enter" style="animation-delay:0.50s">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">Priority × Status Matrix</div>
+                    <div class="chart-card-subtitle">Status breakdown within each priority level</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="matrixChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+const S = {
+    todo:           [[${todo}]],
+    inProgress:     [[${inProgress}]],
+    done:           [[${done}]],
+    high:           [[${high}]],
+    medium:         [[${medium}]],
+    low:            [[${low}]],
+    highTodo:       [[${highTodo}]],
+    highInProgress: [[${highInProgress}]],
+    highDone:       [[${highDone}]],
+    mediumTodo:       [[${mediumTodo}]],
+    mediumInProgress: [[${mediumInProgress}]],
+    mediumDone:       [[${mediumDone}]],
+    lowTodo:       [[${lowTodo}]],
+    lowInProgress: [[${lowInProgress}]],
+    lowDone:       [[${lowDone}]],
+    overdue:   [[${overdue}]],
+    dueToday:  [[${dueToday}]],
+    dueSoon:   [[${dueSoon}]],
+    onTrack:   [[${onTrack}]],
+    noDate:    [[${noDate}]],
+    total:          [[${total}]],
+    completionRate: [[${completionRate}]],
+    score:          [[${productivityScore}]]
+};
+/*]]>*/
+
+/* ── Shared Chart.js defaults ──────────────────────── */
+Chart.defaults.color = '#A0A0B0';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+
+const tooltipDefaults = {
+    backgroundColor: '#1C1C22',
+    borderColor: 'rgba(255,255,255,0.10)',
+    borderWidth: 1,
+    titleColor: '#F0F0F5',
+    bodyColor: '#A0A0B0',
+    padding: 12,
+    cornerRadius: 8,
+    displayColors: true,
+    boxPadding: 4
+};
+
+/* ── Animated number counter ───────────────────────── */
+function countUp(id, target, duration) {
+    const el = document.getElementById(id);
+    if (!el || target === 0) { if (el) el.textContent = 0; return; }
+    const start = performance.now();
+    const tick = (now) => {
+        const p = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(ease * target);
+        if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+}
+
+/* ── Score ring animation ──────────────────────────── */
+function animateScore() {
+    const circle = document.getElementById('scoreCircle');
+    if (!circle) return;
+    const score = parseFloat(circle.dataset.score) || 0;
+    const color = circle.dataset.color || '#5E6AD2';
+    const r = 62;
+    const circumference = 2 * Math.PI * r;
+    circle.style.strokeDasharray  = circumference;
+    circle.style.strokeDashoffset = circumference;
+    circle.style.stroke           = color;
+    circle.style.transition       = 'stroke-dashoffset 1.4s cubic-bezier(0.25,0.46,0.45,0.94)';
+
+    const glowColor = color.replace('#', '');
+    circle.style.filter = `drop-shadow(0 0 8px ${color}60)`;
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            circle.style.strokeDashoffset = circumference * (1 - score / 100);
+        });
+    });
+
+    countUp('scoreNumber', score, 1400);
+}
+
+/* ── Score component bars ──────────────────────────── */
+function animateComponentBars() {
+    document.querySelectorAll('.score-component-fill').forEach(function(bar) {
+        const targetWidth = parseFloat(bar.dataset.width) || 0;
+        bar.style.width = '0%';
+        bar.style.transition = 'width 1.2s cubic-bezier(0.25,0.46,0.45,0.94)';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            bar.style.width = Math.min(targetWidth, 100) + '%';
+        }));
+    });
+}
+
+/* ── Status Distribution (doughnut) ───────────────── */
+function buildStatusChart() {
+    const ctx = document.getElementById('statusChart');
+    if (!ctx) return;
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Todo', 'In Progress', 'Done'],
+            datasets: [{
+                data: [S.todo, S.inProgress, S.done],
+                backgroundColor: ['rgba(94,106,210,0.85)', 'rgba(251,191,36,0.85)', 'rgba(74,222,128,0.85)'],
+                borderColor:     ['rgba(94,106,210,1)',    'rgba(251,191,36,1)',    'rgba(74,222,128,1)'],
+                borderWidth: 1,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            cutout: '70%',
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { animateRotate: true, duration: 900 },
+            plugins: {
+                legend: { display: true, position: 'bottom', labels: { padding: 16, boxWidth: 12, borderRadius: 4 } },
+                tooltip: { ...tooltipDefaults }
+            }
+        }
+    });
+}
+
+/* ── Priority Breakdown (horizontal bar) ───────────── */
+function buildPriorityChart() {
+    const ctx = document.getElementById('priorityChart');
+    if (!ctx) return;
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['High', 'Medium', 'Low'],
+            datasets: [{
+                label: 'Tasks',
+                data: [S.high, S.medium, S.low],
+                backgroundColor: ['rgba(248,113,113,0.80)', 'rgba(251,191,36,0.80)', 'rgba(96,165,250,0.80)'],
+                borderColor:     ['rgba(248,113,113,1)',    'rgba(251,191,36,1)',    'rgba(96,165,250,1)'],
+                borderWidth: 1,
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 900 },
+            plugins: {
+                legend: { display: false },
+                tooltip: { ...tooltipDefaults }
+            },
+            scales: {
+                x: {
+                    ticks: { precision: 0, stepSize: 1 },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+/* ── Urgency Overview (doughnut) ───────────────────── */
+function buildUrgencyChart() {
+    const ctx = document.getElementById('urgencyChart');
+    if (!ctx) return;
+    const raw    = [S.overdue, S.dueToday, S.dueSoon, S.onTrack, S.noDate];
+    const labels = ['Overdue', 'Due Today', 'Due Soon', 'On Track', 'No Date'];
+    const bgColors = [
+        'rgba(248,113,113,0.85)',
+        'rgba(251,146,60,0.85)',
+        'rgba(251,191,36,0.85)',
+        'rgba(74,222,128,0.85)',
+        'rgba(80,80,90,0.70)'
+    ];
+    const borderColors = [
+        'rgba(248,113,113,1)',
+        'rgba(251,146,60,1)',
+        'rgba(251,191,36,1)',
+        'rgba(74,222,128,1)',
+        'rgba(100,100,110,1)'
+    ];
+
+    const hasData = raw.some(v => v > 0);
+    const data       = hasData ? raw          : [1];
+    const labelsShow = hasData ? labels       : ['No tasks yet'];
+    const bg         = hasData ? bgColors     : ['rgba(80,80,90,0.4)'];
+    const border     = hasData ? borderColors : ['rgba(100,100,110,1)'];
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labelsShow,
+            datasets: [{
+                data: data,
+                backgroundColor: bg,
+                borderColor:     border,
+                borderWidth: 1,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            cutout: '70%',
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { animateRotate: true, duration: 900 },
+            plugins: {
+                legend: { display: true, position: 'bottom', labels: { padding: 16, boxWidth: 12, borderRadius: 4,
+                    filter: (item) => hasData ? raw[item.index] > 0 : true
+                }},
+                tooltip: {
+                    ...tooltipDefaults,
+                    callbacks: {
+                        label: (ctx) => hasData ? ` ${ctx.label}: ${ctx.raw}` : ' No active tasks'
+                    }
+                }
+            }
+        }
+    });
+}
+
+/* ── Priority × Status stacked bar ─────────────────── */
+function buildMatrixChart() {
+    const ctx = document.getElementById('matrixChart');
+    if (!ctx) return;
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['High', 'Medium', 'Low'],
+            datasets: [
+                {
+                    label: 'Todo',
+                    data: [S.highTodo, S.mediumTodo, S.lowTodo],
+                    backgroundColor: 'rgba(94,106,210,0.80)',
+                    borderColor:     'rgba(94,106,210,1)',
+                    borderWidth: 1,
+                    borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 },
+                    borderSkipped: 'bottom'
+                },
+                {
+                    label: 'In Progress',
+                    data: [S.highInProgress, S.mediumInProgress, S.lowInProgress],
+                    backgroundColor: 'rgba(251,191,36,0.80)',
+                    borderColor:     'rgba(251,191,36,1)',
+                    borderWidth: 1,
+                    borderRadius: 0,
+                    borderSkipped: true
+                },
+                {
+                    label: 'Done',
+                    data: [S.highDone, S.mediumDone, S.lowDone],
+                    backgroundColor: 'rgba(74,222,128,0.80)',
+                    borderColor:     'rgba(74,222,128,1)',
+                    borderWidth: 1,
+                    borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 },
+                    borderSkipped: 'bottom'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 900 },
+            plugins: {
+                legend: { display: true, position: 'bottom', labels: { padding: 16, boxWidth: 12, borderRadius: 4 } },
+                tooltip: { ...tooltipDefaults }
+            },
+            scales: {
+                x: { stacked: true, grid: { display: false } },
+                y: { stacked: true, ticks: { precision: 0, stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+}
+
+/* ── Boot ───────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+    animateScore();
+    animateComponentBars();
+    countUp('kpi-total',    S.total,          900);
+    countUp('kpi-rate',     S.completionRate, 1100);
+    countUp('kpi-overdue',  S.overdue,        800);
+    countUp('kpi-progress', S.inProgress,     800);
+
+    buildStatusChart();
+    buildPriorityChart();
+    buildUrgencyChart();
+    buildMatrixChart();
+});
+</script>
+
+</body>
+</html>
