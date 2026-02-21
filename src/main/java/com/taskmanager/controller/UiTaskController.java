@@ -42,11 +42,11 @@ public class UiTaskController {
     }
 
     @PostMapping("/create")
-    public String createTask(@RequestParam String title,
-                             @RequestParam(required = false) String description,
-                             @RequestParam(required = false) String priority,
-                             @RequestParam(required = false) String status,
-                             @RequestParam(required = false) String dueDate,
+    public String createTask(@RequestParam("title") String title,
+                             @RequestParam(name = "description", required = false) String description,
+                             @RequestParam(name = "priority", required = false) String priority,
+                             @RequestParam(name = "status", required = false) String status,
+                             @RequestParam(name = "dueDate", required = false) String dueDate,
                              HttpSession session, Model model,
                              HttpServletRequest request, HttpServletResponse response) {
         Long userId = getUserIdFromSession(session);
@@ -68,12 +68,12 @@ public class UiTaskController {
     }
 
     @PostMapping("/update")
-    public String updateTask(@RequestParam Long taskId,
-                             @RequestParam(required = false) String title,
-                             @RequestParam(required = false) String description,
-                             @RequestParam(required = false) String status,
-                             @RequestParam(required = false) String priority,
-                             @RequestParam(required = false) String dueDate,
+    public String updateTask(@RequestParam("taskId") Long taskId,
+                             @RequestParam(name = "title", required = false) String title,
+                             @RequestParam(name = "description", required = false) String description,
+                             @RequestParam(name = "status", required = false) String status,
+                             @RequestParam(name = "priority", required = false) String priority,
+                             @RequestParam(name = "dueDate", required = false) String dueDate,
                              HttpSession session, Model model,
                              HttpServletRequest request, HttpServletResponse response) {
         Long userId = getUserIdFromSession(session);
@@ -95,7 +95,7 @@ public class UiTaskController {
     }
 
     @DeleteMapping("/{id}")
-    public String deleteTask(@PathVariable Long id, HttpSession session, Model model,
+    public String deleteTask(@PathVariable("id") Long id, HttpSession session, Model model,
                              HttpServletRequest request, HttpServletResponse response) {
         Long userId = getUserIdFromSession(session);
         if (userId == null) return handleUnauthorized(request, response);
@@ -108,7 +108,7 @@ public class UiTaskController {
     }
 
     @PostMapping("/{id}/done")
-    public String markDone(@PathVariable Long id, HttpSession session, Model model,
+    public String markDone(@PathVariable("id") Long id, HttpSession session, Model model,
                            HttpServletRequest request, HttpServletResponse response) {
         Long userId = getUserIdFromSession(session);
         if (userId == null) return handleUnauthorized(request, response);
@@ -123,8 +123,8 @@ public class UiTaskController {
 
     @PostMapping("/{id}/status")
     @ResponseBody
-    public ResponseEntity<Void> moveTask(@PathVariable Long id,
-                                         @RequestParam String status,
+    public ResponseEntity<Void> moveTask(@PathVariable("id") Long id,
+                                         @RequestParam("status") String status,
                                          HttpSession session) {
         Long userId = getUserIdFromSession(session);
         if (userId == null) return ResponseEntity.status(401).build();
